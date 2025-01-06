@@ -1,43 +1,46 @@
 import { HashRouter as Router, Route, Routes } from "react-router-dom"
-import PageLogin from "./pages/loginPage"
-import PageHome from "./pages/homePage"
-import { AuthProvider } from "./components/AuthContext";
-import PageProfile from "./pages/profilePage";
 import NavDrawer from "./components/NavBar";
-import SubPage from "./pages/SubPage";
+import { AuthProvider } from "./components/AuthContext";
+
+
+//pages
+import SubPage from "./pages/PageSub";
+import PageProfile from "./pages/PageProfile";
+import PageTermService from "./pages/PageTermService";
+import PagePrivacy from "./pages/PagePrivacy";
+import PageFAQ from "./pages/PageFAQ";
+import PageSetting from "./pages/PageSetting";
+import PageLogin from "./pages/PageLogin"
+import PageHome from "./pages/PageHome"
+import PageDevice from "./pages/PageDEvice";
 
 function App() {
+
+  const createRoute = (path, Component) => (
+    <Route
+      path={path}
+      element={
+        <NavDrawer>
+          <Component />
+        </NavDrawer>
+      }
+    />
+  )
+
   return (
     <AuthProvider>
       <Router>
         <Routes>
           <Route path="/" element={<PageLogin />} />
-          <Route path="/login" element={<PageLogin/>}/>
-
-          <Route 
-            path="/home" 
-            element={
-              <NavDrawer>
-                <PageHome />
-              </NavDrawer>
-            } 
-          />
-          <Route 
-            path="/profile" 
-            element={
-              <NavDrawer>
-                <PageProfile />
-              </NavDrawer>
-            } 
-          />
-          <Route 
-            path="/subscription" 
-            element={
-              <NavDrawer>
-                <SubPage />
-              </NavDrawer>
-            } 
-          />
+          <Route path="/login" element={<PageLogin />} />
+          {createRoute("/home", PageHome)}
+          {createRoute("/profile", PageProfile)}
+          {createRoute("/subscription", SubPage)}
+          {createRoute("/setting", PageSetting)}
+          {createRoute("/term-service", PageTermService)}
+          {createRoute("/privacy-policy", PagePrivacy)}
+          {createRoute("/faq", PageFAQ)}
+          {createRoute("/devices", PageDevice)}
         </Routes>
       </Router>
     </AuthProvider>

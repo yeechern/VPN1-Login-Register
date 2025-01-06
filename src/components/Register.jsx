@@ -77,8 +77,8 @@ const Register = () => {
 
 
 
-    const registerUser = async () => {
-        event.preventDefault()
+    const registerUser = async (e) => {
+        e.preventDefault()
         if (!validation()) {
             return;
         }
@@ -190,7 +190,7 @@ const Register = () => {
                     mx: "auto",
                     display: "block"
                 }}
-                onClick={() => registerUser()}
+                onClick={registerUser}
             >
                 Register
             </Button>

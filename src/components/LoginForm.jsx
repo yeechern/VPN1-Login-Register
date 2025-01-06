@@ -12,6 +12,7 @@ import {
 } from '@mui/material'
 
 
+
 const LoginForm = () => {
 
     const [user, setUser] = useState(
@@ -21,7 +22,7 @@ const LoginForm = () => {
         }
     )
 
-    const {setCurrentUser} = useAuth();
+    const {login} = useAuth();
 
     const [snackbar, setSnackbar] = useState({
         open: false,
@@ -52,7 +53,7 @@ const LoginForm = () => {
     const navigate = useNavigate();
 
 
-    const userLogin = async () => {
+    const userLogin = async (event) => {
         event.preventDefault()
         console.log("Login request: ", user)
 
@@ -76,8 +77,8 @@ const LoginForm = () => {
             }
             const data = await response.json();
             console.log("User login:", data);
-            setCurrentUser(data.user)
-            navigate("/home", { state: { loginSuccess: true } });
+            login(data.user);
+            navigate("/home", { state: { loginSuccess: true } }); //let the success login come out when login success
 
         } catch (error) {
             console.error("Error:", error);
@@ -144,7 +145,7 @@ const LoginForm = () => {
                     mx: "auto",
                     display: "block"
                 }}
-                onClick={() => userLogin()}
+                onClick={userLogin}
             >
                 Login
             </Button>

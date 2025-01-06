@@ -4,6 +4,7 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs'
+import moment from 'moment-timezone'
 dotenv.config();
 
 const { Pool } = pkg;
@@ -84,16 +85,16 @@ app.post('/register', async (req, res) => {
 });
 
 app.post('/login', async (req, res) => {
-  const { 
-    userEmail, 
-    userPassword 
+  const {
+    userEmail,
+    userPassword
   } = req.body;
   console.log("Request:", req.body)
 
 
   try {
     const emailResult = await pool.query('SELECT * FROM users WHERE userEmail = $1', [userEmail]);
-    console.log('Result: ',emailResult.rows)
+    console.log('Result: ', emailResult.rows)
 
     if (emailResult.rows.length === 0) {
       return res.status(401).json({ error: "User does not exist" });
@@ -104,10 +105,14 @@ app.post('/login', async (req, res) => {
     //verify password                                     //need to small letter, json file pull out small letter QAQ
     const isMatch = await bcrypt.compare(userPassword, user.userpassword); // Compare with stored hash
     if (!isMatch) {
-        return res.status(401).json({ error: 'Invalid password' });
-    } else{
+      return res.status(401).json({ error: 'Invalid password' });
+    } else {
       res.status(200).json({ message: "Login successful", user });
     }
+
+    const lastLoginTime = moment().tz('Asia/Kuala_Lumpur').format('YYYY-MM-DD HH:mm:ss');
+    await pool.query('UPDATE users SET lastUsedDate = $1 WHERE userEmail = $2', [lastLoginTime, userEmail]);
+    user.lastUsedDate = lastLoginTime
 
     //normal way if no bcrypt
     // if (user.userPassword === password) {
@@ -131,6 +136,59 @@ app.get('/users', async (req, res) => {
     res.status(500).json({ error: 'An error occurred while fetching users' });
   }
 });
+
+app.delete('/deleteUser', async (req, res) => { //not found 
+  const { userEmail } = req.body; // Get userEmail from the request body
+
+  if (!userEmail) {
+    return res.status(400).json({ error: "userEmail is required" });
+  }
+
+  try {
+    const userCheck = await pool.query('SELECT * FROM users WHERE userEmail = $1', [userEmail])
+    if (userCheck.rows.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    await pool.query('DELETE FROM users WHERE userEmail = $1', [userEmail])
+    res.status(200).json({ message: "Account deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "An error occurred during account delete" });
+  }
+});
+
+app.put('/changePassword', async (req, res) => {
+  const {
+    userEmail,
+    currentPassword,
+    newPassword,
+  } = req.body
+
+  try {
+    const emailResult = await pool.query('SELECT * FROM users WHERE userEmail = $1', [userEmail]);
+    console.log('Change Password User Email: ', emailResult.rows)
+
+    if (emailResult.rows.length === 0) {
+      return res.status(401).json({ error: "User does not exist" });
+    }
+
+    const user = emailResult.rows[0];
+
+    //verify password                                     //need to small letter, json file pull out small letter QAQ
+    const isMatch = await bcrypt.compare(currentPassword, user.userpassword); // Compare with stored hash
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Current password is incorrect' });
+    }
+
+    await pool.query('UPDATE users SET userpassword = $1 WHERE userEmail = $2', [newPassword, userEmail]);
+    return res.status(200).json({ message: "Password successfully updated" });
+
+  } catch (error) {
+    console.error("Error updating password: ", error);
+    return res.status(500).json({ error: "An error occurred while updating the password" });
+  }
+})
 
 
 // Start the server
