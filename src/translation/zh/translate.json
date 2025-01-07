@@ -1,0 +1,31 @@
+{
+    "navigation": {
+        "home": "主页",
+        "account": "账户",
+        "profile": "个人资料",
+        "subscription": "订阅",
+        "devices": "设备",
+        "settings": "设置",
+        "aboutUs": "关于我们",
+        "termOfService": "服务条款",
+        "privacyPolicy": "隐私政策",
+        "faq": "常见问题",
+        "logout":"登出"
+    },
+    "profile": {
+        "userProfile": "用户资料",
+        "personalInformation": "个人信息",
+        "userID": "用户ID",
+        "userName": "用户名",
+        "email": "电子邮箱",
+        "membershipDetails": "会员详情",
+        "balanceAmount": "余额",
+        "totalPoints": "总积分",
+        "memberLevel": "会员等级",
+        "dates": "日期",
+        "memberExpiredDate": "会员到期日期",
+        "lastUseDate": "上次使用日期",
+        "userRegisteredDate": "用户注册日期",
+        "deleteAccount": "删除账户"
+    }
+}
