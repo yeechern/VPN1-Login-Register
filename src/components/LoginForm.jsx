@@ -1,7 +1,6 @@
-import React from 'react'
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from './AuthContext'
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 import {
     Box,
     TextField,
@@ -9,29 +8,29 @@ import {
     Alert,
     Button,
     Typography,
-} from '@mui/material'
-
-
+    IconButton,
+    InputAdornment
+} from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 
 const LoginForm = () => {
+    const [user, setUser] = useState({
+        userEmail: "",
+        userPassword: "",
+    });
 
-    const [user, setUser] = useState(
-        {
-            userEmail: "",
-            userPassword: ""
-        }
-    )
-
-    const {login} = useAuth();
+    const { login } = useAuth();
 
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: '',
         severity: '',
-    })
+    });
+
+    const [passwordVisible, setPasswordVisible] = useState(false); // State for password visibility
 
     const handleCloseSnackbar = () => {
-        setSnackbar(prevState => ({
+        setSnackbar((prevState) => ({
             ...prevState,
             open: false,
         }));
@@ -42,21 +41,17 @@ const LoginForm = () => {
     };
 
     const handleInputChange = (key, value) => {
-        setUser((prevUser) => (
-            {
-                ...prevUser,
-                [key]: value
-            }
-        ));
-    }
+        setUser((prevUser) => ({
+            ...prevUser,
+            [key]: value,
+        }));
+    };
 
     const navigate = useNavigate();
 
-
     const userLogin = async (event) => {
-        event.preventDefault()
-        console.log("Login request: ", user)
-
+        event.preventDefault();
+        console.log("Login request: ", user);
 
         try {
             const response = await fetch("http://localhost:5000/login", {
@@ -64,12 +59,11 @@ const LoginForm = () => {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(user)
+                body: JSON.stringify(user),
             });
-            console.log("Response:", response)
+            console.log("Response:", response);
 
             if (!response.ok) {
-                // Server returned an error status code
                 const errorData = await response.json();
                 console.error("Login failed:", errorData);
                 showSnackbar(`Login failed: ${errorData.error || "Unknown error"}`, "error");
@@ -78,16 +72,17 @@ const LoginForm = () => {
             const data = await response.json();
             console.log("User login:", data);
             login(data.user);
-            navigate("/home", { state: { loginSuccess: true } }); //let the success login come out when login success
+            navigate("/home", { state: { loginSuccess: true } });
 
         } catch (error) {
             console.error("Error:", error);
             showSnackbar("Network error: Unable to reach the server.", "error");
         }
+    };
 
-
-    }
-
+    const togglePasswordVisibility = () => {
+        setPasswordVisible(!passwordVisible);
+    };
 
     return (
         <Box
@@ -97,7 +92,6 @@ const LoginForm = () => {
                 padding: 4,
                 my: 5,
                 mx: "auto",
-                display: 'block',
                 bgcolor: "white",
                 border: "1px solid black",
                 borderRadius: "8px",
@@ -107,7 +101,7 @@ const LoginForm = () => {
             autoComplete="off"
         >
             <Typography
-                variant='h5'
+                variant="h5"
                 sx={{
                     fontWeight: "bold",
                     textAlign: "center",
@@ -125,17 +119,32 @@ const LoginForm = () => {
                 fullWidth
                 margin="normal"
                 value={user.userEmail}
-                onChange={(e) => handleInputChange("userEmail", e.target.value)} />
+                onChange={(e) => handleInputChange("userEmail", e.target.value)}
+            />
 
             <TextField
                 id="loginPassword"
                 label="Password"
                 variant="outlined"
-                type="password"
+                type={passwordVisible ? "text" : "password"}
                 fullWidth
                 margin="normal"
                 value={user.userPassword}
-                onChange={(e) => handleInputChange("userPassword", e.target.value)} />
+                onChange={(e) => handleInputChange("userPassword", e.target.value)}
+                InputProps={{
+                    endAdornment: (
+                        <InputAdornment position="end">
+                            <IconButton
+                                onMouseEnter={togglePasswordVisibility}
+                                onMouseLeave={togglePasswordVisibility}
+                                edge="end"
+                            >
+                                {passwordVisible ? <Visibility /> : <VisibilityOff />}
+                            </IconButton>
+                        </InputAdornment>
+                    ),
+                }}
+            />
 
             <Button
                 id="loginButton"
@@ -143,7 +152,7 @@ const LoginForm = () => {
                 sx={{
                     mt: 2,
                     mx: "auto",
-                    display: "block"
+                    display: "block",
                 }}
                 onClick={userLogin}
             >
@@ -165,7 +174,7 @@ const LoginForm = () => {
                 </Alert>
             </Snackbar>
         </Box>
-    )
-}
+    );
+};
 
-export default LoginForm
+export default LoginForm;
