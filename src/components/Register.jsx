@@ -1,6 +1,5 @@
-import React from 'react'
-import { useState } from 'react'
-import bcrypt from 'bcryptjs'
+import React, { useState } from 'react';
+import bcrypt from 'bcryptjs';
 import {
     Box,
     TextField,
@@ -8,35 +7,38 @@ import {
     Alert,
     Button,
     Typography,
-} from '@mui/material'
-
+    IconButton,
+    InputAdornment,
+} from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 
 const Register = () => {
-    const [user, setUser] = useState(
-        {
-            userName: "",
-            userEmail: "",
-            userPassword: "",
-            userStatus: "Normal",
-            balanceAmount: 0,
-            totalPoints: 0,
-            memberLevel: "",
-            memberExpired: null,
-            registerDate: null,
-            lastUsedDate: null,
-            trafficUsed: 0,
-            registeredIP: "",
-            deviceNumber: "",
-        }
-    )
+    const [user, setUser] = useState({
+        userName: "",
+        userEmail: "",
+        userPassword: "",
+        userStatus: "Normal",
+        balanceAmount: 0,
+        totalPoints: 0,
+        memberLevel: "",
+        memberExpired: null,
+        registerDate: null,
+        lastUsedDate: null,
+        trafficUsed: 0,
+        registeredIP: "",
+        deviceNumber: "",
+    });
 
-    const [confirmPassword, setConfirmPassword] = useState("")
+    const [confirmPassword, setConfirmPassword] = useState("");
 
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: '',
         severity: '',
-    })
+    });
+
+    const [passwordVisible, setPasswordVisible] = useState(false);
+    const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
 
     const handleCloseSnackbar = () => {
         setSnackbar(prevState => ({
@@ -49,36 +51,29 @@ const Register = () => {
         setSnackbar({ open: true, message, severity });
     };
 
-
-
-
     const handleInputChange = (key, value) => {
         setUser((prevUser) => ({
             ...prevUser,
             [key]: value
-        }))
-    }
-
-
+        }));
+    };
 
     const validation = () => {
         if (!user.userName || !user.userEmail || !user.userPassword || !confirmPassword) {
-            showSnackbar("All fields are required!","error")
+            showSnackbar("All fields are required!", "error");
             return false;
         }
 
         if (user.userPassword !== confirmPassword) {
-            showSnackbar("Passwords do not match!","error")
+            showSnackbar("Passwords do not match!", "error");
             return false;
         }
 
-        return true
-    }
-
-
+        return true;
+    };
 
     const registerUser = async (e) => {
-        e.preventDefault()
+        e.preventDefault();
         if (!validation()) {
             return;
         }
@@ -87,7 +82,6 @@ const Register = () => {
         const hashedPassword = bcrypt.hashSync(user.userPassword, 10);
         const userToRegister = { ...user, userPassword: hashedPassword }; //new variable to store hashed pass
         console.log("Registering user:", userToRegister);
-
 
         try {
             const response = await fetch("http://localhost:5000/register", {
@@ -100,21 +94,19 @@ const Register = () => {
             console.log("Response:", response);
 
             if (!response.ok) {
-                // Server returned an error status code
                 const errorData = await response.json();
                 console.error("Registration failed:", errorData);
-                showSnackbar(`Registration failed: ${errorData.error || 'Unknown error'}`, "error")
+                showSnackbar(`Registration failed: ${errorData.error || 'Unknown error'}`, "error");
                 return;
             }
             const data = await response.json();
             console.log("User registered:", data);
-            showSnackbar("User registered successfully!", "success")
+            showSnackbar("User registered successfully!", "success");
         } catch (error) {
             console.error("Error:", error);
-            showSnackbar("An error occurred while registering the user.", "error")
+            showSnackbar("An error occurred while registering the user.", "error");
         }
     };
-
 
     return (
         <Box
@@ -123,7 +115,7 @@ const Register = () => {
                 my: 5,
                 width: "400px",
                 padding: 4,
-                mx:'auto',
+                mx: 'auto',
                 bgcolor: "white",
                 border: "1px solid black",
                 borderRadius: "8px",
@@ -166,21 +158,45 @@ const Register = () => {
                 id="regPassword"
                 label="Password"
                 variant="outlined"
-                type="password"
+                type={passwordVisible ? "text" : "password"}
                 fullWidth
                 margin="normal"
                 value={user.userPassword}
                 onChange={(e) => handleInputChange("userPassword", e.target.value)}
+                InputProps={{
+                    endAdornment: (
+                        <InputAdornment position="end">
+                            <IconButton
+                                onClick={() => setPasswordVisible(!passwordVisible)}
+                                edge="end"
+                            >
+                                {passwordVisible ? <Visibility /> : <VisibilityOff />}
+                            </IconButton>
+                        </InputAdornment>
+                    ),
+                }}
             />
             <TextField
                 id="confirmPassword"
                 label="Confirm Password"
                 variant="outlined"
-                type="password"
+                type={confirmPasswordVisible ? "text" : "password"}
                 fullWidth
                 margin="normal"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                InputProps={{
+                    endAdornment: (
+                        <InputAdornment position="end">
+                            <IconButton
+                                onClick={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
+                                edge="end"
+                            >
+                                {confirmPasswordVisible ? <Visibility /> : <VisibilityOff />}
+                            </IconButton>
+                        </InputAdornment>
+                    ),
+                }}
             />
             <Button
                 id="registerButton"
@@ -211,6 +227,6 @@ const Register = () => {
             </Snackbar>
         </Box>
     );
-}
+};
 
-export default Register
+export default Register;
