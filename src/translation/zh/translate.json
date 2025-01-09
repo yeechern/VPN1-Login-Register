@@ -10,7 +10,7 @@
         "termOfService": "服务条款",
         "privacyPolicy": "隐私政策",
         "faq": "常见问题",
-        "logout":"登出"
+        "logout": "登出"
     },
     "profile": {
         "userProfile": "用户资料",
@@ -27,5 +27,18 @@
         "lastUseDate": "上次使用日期",
         "userRegisteredDate": "用户注册日期",
         "deleteAccount": "删除账户"
+    },
+    "setting": {
+        "settings": "设置",
+        "language": "语言",
+        "selectLanguage": "选择语言",
+        "notifications": "通知",
+        "emailNotifications": "电子邮件通知",
+        "pushNotifications": "推送通知",
+        "changePassword": "更改密码",
+        "currentPassword": "当前密码",
+        "newPassword": "新密码",
+        "confirmNewPassword": "确认新密码",
+        "updatePassword": "更新密码"
     }
 }

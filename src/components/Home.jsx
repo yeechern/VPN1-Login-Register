@@ -16,6 +16,8 @@ import {
 import { useLocation } from "react-router-dom";
 import { useAuth } from './AuthContext';
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
+import GetAppIcon from '@mui/icons-material/GetApp';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const Home = () => {
   const { currentUser } = useAuth();
@@ -25,37 +27,202 @@ const Home = () => {
     message: '',
     severity: '',
   });
-
+  const [selectedRow, setRowSelected] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [hasShowConnected, setHasShowConnected] = useState(false)
 
-  // Sample VPN nodes data - replace with your actual data
-  const vpnNodes = [
-    {
-      remarks: 'Singapore',
-      protocol: 'VMess',
-      address: 'sg1.example.com',
-      port: '443',
-      transport: 'ws',
-      tls: 'Yes',
-      latency: 85,
-      speed: 150
-    },
-    {
-      remarks: 'Japan',
-      protocol: 'VMess',
-      address: 'jp1.example.com',
-      port: '443',
-      transport: 'tcp',
-      tls: 'Yes',
-      latency: 95,
-      speed: 120
-    },
-    // Add more nodes as needed
-  ];
+  const [protocols, setProtocols] = useState(() => {
+    const savedProtocols = localStorage.getItem('protocols');
+    return savedProtocols ? JSON.parse(savedProtocols) : [
+      {
+        id: 1,
+        remarks: 'Singapore',
+        protocol: 'VMess',
+        add: 'sg1.example.com',
+        port: '443',
+        net: 'ws',
+        tls: 'Yes',
+        latency: 86,
+        speed: 150
+      }
+    ];
+  });
 
-  const handleRowClick = (node) => {
-    console.log(node)
+  const resetProtocols = () => {
+    window.electronAPI.checkOutbounds(true);
+    const defaultProtocols = [
+      {
+        id: 1,
+        remarks: 'Singapore',
+        protocol: 'VMess',
+        add: 'sg1.example.com',
+        port: '443',
+        net: 'ws',
+        tls: 'Yes',
+        latency: 85,
+        speed: 150,
+      },
+    ];
+    setProtocols(defaultProtocols); // Reset state
+    localStorage.setItem('protocols', JSON.stringify(defaultProtocols)); // Save to localStorage
+  };
+
+  useEffect(() => {
+    localStorage.setItem('protocols', JSON.stringify(protocols));
+  }, [protocols]);
+
+
+  function decodeLink(link) {
+    const protocol = link.split("://")[0]
+    switch (protocol) {
+      case "ss":
+        return window.electronAPI.decodeShadowSocks(link)
+      case "vmess":
+        return window.electronAPI.decodeVmess(link);
+      case "trojan":
+        return window.electronAPI.decodeTroless(link);
+      case "vless":
+        return window.electronAPI.decodeTroless(link);
+      default:
+        throw new Error("Invalid Link");
+    }
   }
+
+  function importLink() {
+    window.electronAPI.readClipboard()
+      .then(async (content) => {
+        try {
+          const decoded = await decodeLink(content); // Decoding the content of the clipboard
+
+          // Check if 'reality' is part of the decoded data for VLESS
+          const isReality = decoded.realitySettings !== null;
+          const realitySettings = decoded.realitySettings || {};
+
+          setProtocols((prevProtocols) => {
+            const newId = prevProtocols.length > 0 ? Math.max(...prevProtocols.map(p => p.id)) + 1 : 0;
+
+            const newProtocol = {
+              id: newId,
+              remarks: decoded.ps,
+              protocol: decoded.protocol,
+              add: decoded.add,
+              port: decoded.port,
+              net: decoded.net || "-",
+              tls: decoded.scy || "-",
+              uuid: decoded.id,
+              scy: decoded.scy,
+              type: decoded.type,
+              aid: decoded.aid || "-",
+              v: decoded.v,
+              method: decoded.method,
+              latency: decoded.latency || "-",
+              speed: decoded.speed || "-",
+              flow: decoded.flow,
+              realitySettings: isReality ? realitySettings : null, // Include REALITY settings if applicable
+            };
+
+            showSnackbar("Link Copied from Clipboard", "success");
+            console.log("New Protocol", newProtocol);
+
+            return [...prevProtocols, newProtocol];
+          });
+        } catch (error) {
+          showSnackbar(error.message, "error");
+        }
+      })
+      .catch((error) => {
+        console.error('Error reading clipboard:', error);
+      });
+  }
+
+
+  const handleRowClick = async (config) => {
+    window.electronAPI.checkOutbounds(true); // reset the outbound
+    setRowSelected(config.id);
+    console.log("Creating Config file", config)
+    try {
+      await window.electronAPI.processConfig(config)
+    } catch (error) {
+      showSnackbar(error.message, "error")
+    }
+  }
+
+  const deleteRow = async (id) => {
+    window.electronAPI.checkOutbounds(true)
+    setProtocols(prevProtocols => {
+      const updatedProtocols = prevProtocols.filter(protocol => protocol.id !== id);
+      localStorage.setItem('protocols', JSON.stringify(updatedProtocols));
+      return updatedProtocols;
+    })
+    showSnackbar("Node deleted", "info");
+  }
+
+  //<button Side>
+  const startProxy = async () => {
+    try {
+      await window.electronAPI.checkOutbounds(false);
+      await window.electronAPI.startProxy();
+      window.electronAPI.startXray();
+      setIsConnected(true)
+      setHasShowConnected(false)
+    } catch (error) {
+      showSnackbar(error.message, "error")
+    }
+  }
+
+  const stopProxy = async () => {
+    try {
+      await window.electronAPI.stopProxy();
+      window.electronAPI.stopXray();
+      setIsConnected(false)
+      setHasShowConnected(false)
+    } catch (error) {
+      showSnackbar(error.message, "error")
+    }
+  }
+
+  const toggleConnection = () => {
+    if (isConnected) {
+      stopProxy()
+    } else {
+      startProxy()
+    }
+  }
+  //</button Side>
+
+  useEffect(() => {
+    window.electronCallbackFunctions.onXrayOutput(() => {
+      if (!hasShowConnected) {
+        showSnackbar("Connected Successfully", 'success');
+      }
+      setHasShowConnected(true)
+
+    })
+    window.electronCallbackFunctions.onXrayOutputError((error) => {
+      showSnackbar(`Xray Error: ${error}`, 'error');
+      window.electronAPI.stopProxy();
+      setIsConnected(false);
+    })
+    window.electronCallbackFunctions.onXrayError((error) => {
+      showSnackbar(`Xray Error: ${error}`, 'error');
+      window.electronAPI.stopProxy();
+      setIsConnected(false);
+    })
+    window.electronCallbackFunctions.onXrayNotFound((error) => {
+      showSnackbar(`Xray Not Found: ${error}`, 'error');
+      window.electronAPI.stopProxy();
+      setIsConnected(false);
+    })
+    window.electronCallbackFunctions.onXrayExit((code) => {
+      if (code) {
+        showSnackbar(`Exited with code: ${code}`, 'error');
+        setIsConnected(false);
+      } else {
+        showSnackbar('Connection Terminated', 'info');
+      }
+      window.electronAPI.stopProxy();
+    })
+  }, []);
 
   const handleCloseSnackbar = () => {
     setSnackbar(prevState => ({
@@ -75,13 +242,6 @@ const Home = () => {
     }
   }, [location.state?.loginSuccess]);
 
-  const connectButtonClick = () => {
-    setIsConnected(!isConnected);
-    showSnackbar(
-      isConnected ? "Disconnected successfully" : "Connected successfully",
-      "success"
-    );
-  };
 
   return (
     <Box sx={{ width: '100%', height: 700, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
@@ -91,7 +251,10 @@ const Home = () => {
 
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
         <Button
-          onClick={connectButtonClick}
+          onClick={() => {
+            toggleConnection()
+            showSnackbar("Connected Successfully", "sucess")
+          }}
           id='proxy-connection'
           sx={{
             width: 200,
@@ -127,27 +290,69 @@ const Home = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {vpnNodes.map((node, index) => (
+            {protocols.map((protocol) => (
               <TableRow
-                key={index}
+                key={protocol.id}
                 sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                onClick={() => handleRowClick(node)}
-                hover
-                style={{ cursor: 'pointer' }}
+                hover={!isConnected}
+                style={{ cursor: isConnected ? 'not-allowed' : 'pointer', backgroundColor: selectedRow === protocol.id ? 'lightblue' : 'inherit' }}
+                onClick={() => {
+                  if (!isConnected) {
+                    handleRowClick(protocol)
+                  }
+                }}
               >
-                <TableCell>{node.remarks}</TableCell>
-                <TableCell>{node.protocol}</TableCell>
-                <TableCell>{node.address}</TableCell>
-                <TableCell>{node.port}</TableCell>
-                <TableCell>{node.transport}</TableCell>
-                <TableCell>{node.tls}</TableCell>
-                <TableCell>{node.latency}</TableCell>
-                <TableCell>{node.speed}</TableCell>
+                <TableCell>{protocol.remarks}</TableCell>
+                <TableCell>{protocol.protocol}</TableCell>
+                <TableCell>{protocol.add}</TableCell>
+                <TableCell>{protocol.port}</TableCell>
+                <TableCell>{protocol.net}</TableCell>
+                <TableCell>{protocol.tls}</TableCell>
+                <TableCell>{protocol.latency}</TableCell>
+                <TableCell>{protocol.speed}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+        <Button
+          variant="outlined"
+          onClick={importLink}
+          startIcon={<GetAppIcon />}>
+          Import Link
+        </Button>
+        <Button
+          variant="outlined"
+          color='warning'
+          hover={!isConnected}
+          style={{ cursor: isConnected ? 'not-allowed' : 'pointer' }}
+          onClick={() => {
+            if (!isConnected) {
+              deleteRow(selectedRow)
+            }
+          }}
+          startIcon={<DeleteIcon />}>
+          Delete Row
+        </Button>
+        <Button
+          variant="outlined"
+          color='warning'
+          hover={!isConnected}
+          style={{ cursor: isConnected ? 'not-allowed' : 'pointer' }}
+          onClick={() => {
+            if (!isConnected) {
+              resetProtocols
+            }
+          }}
+        >
+          Reset Row
+        </Button>
+
+      </Box>
+
+
+
 
       {/* Snackbar */}
       <Snackbar

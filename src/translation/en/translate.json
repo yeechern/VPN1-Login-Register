@@ -27,5 +27,18 @@
         "lastUseDate":"Last Use Date",
         "userRegisteredDate":"User Registered Date",
         "deleteAccount":"Delete Account"
+    },
+    "setting":{
+        "settings":"Settings",
+        "language":"Language",
+        "selectLanguage":"Select Language",
+        "notifications":"Notifications",
+        "emailNotifications":"Email Notifications",
+        "pushNotifications":"Push Notifications",
+        "changePassword":"Change Password",
+        "currentPassword":"Current Password",
+        "newPassword":"New Password",
+        "confirmNewPassword":"Confirm New Password",
+        "updatePassword":"Update Password"
     }
 }

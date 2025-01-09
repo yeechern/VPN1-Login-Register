@@ -9,9 +9,11 @@ import i18next from 'i18next'
 import { I18nextProvider } from 'react-i18next';
 
 
+const storedLanguage = localStorage.getItem('language') || 'en';
+
 i18next.init({
   interpolation: { escapeValue: false },
-  lng: "en",
+  lng: storedLanguage,
   fallbackLng:'en',
   resources: {
     en:{
