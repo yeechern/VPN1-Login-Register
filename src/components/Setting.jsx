@@ -23,12 +23,13 @@ import {
     Notifications,
     Lock
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 
 const Setting = () => {
+    const {t} = useTranslation();
 
     const { currentUser } = useAuth()
-
-    const [language, setLanguage] = useState(i18n.language||"en");
+    const [selectedLanguage, setSelectedLanguage] = useState(localStorage.getItem('language') || 'en');
     const [currentPassword, setCurrentPassword] = useState('');//for varify before change the password 
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('')
@@ -56,8 +57,9 @@ const Setting = () => {
 
     const handleLanguageChange = (event) => {
         const selectedLanguage = event.target.value
-        setLanguage(selectedLanguage);
+        setSelectedLanguage(selectedLanguage);
         i18n.changeLanguage(selectedLanguage)
+        localStorage.setItem('language',selectedLanguage)
         console.log(`Change language to ${selectedLanguage}`)
     };
 
@@ -142,18 +144,18 @@ const Setting = () => {
         <Box sx={{ maxWidth: 1200, mx: 'auto', p: 5, height: 800 }}>
             <Paper elevation={3} sx={{ p: 4, borderRadius: 2, width: 1200 }}>
                 <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 4, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
-                    Settings
+                {t('setting.settings')}
                 </Typography>
 
                 {/* Language Section */}
                 <Box sx={{ mb: 6 }}>
-                    <SectionHeader icon={<Language color="primary" />} title="Language" />
+                    <SectionHeader icon={<Language color="primary" />} title={t('setting.language')} />
                     <FormControl fullWidth sx={{ maxWidth: 400 }}>
-                        <InputLabel id="language-select-label">Select Language</InputLabel>
+                        <InputLabel id="language-select-label">{t('setting.selectLanguage')}</InputLabel>
                         <Select
                             labelId="language-select-label"
                             id="language-select"
-                            value={language}
+                            value={selectedLanguage}
                             onChange={handleLanguageChange}
                             label="Select Language"
                         >
@@ -169,10 +171,10 @@ const Setting = () => {
                 <Divider sx={{ my: 4 }} />
 
                 <Box sx={{ mb: 6 }}>
-                    <SectionHeader icon={<Notifications color="primary" />} title="Notifications" />
+                    <SectionHeader icon={<Notifications color="primary" />} title={t('setting.notifications')} />
                     <Stack spacing={3}>
                         <Box sx={{ display: 'flex', alignItems: 'center', }}>
-                            <Typography sx={{ minWidth: 150 }} >Email Notifications</Typography>
+                            <Typography sx={{ minWidth: 150 }} >{t('setting.emailNotifications')}</Typography>
                             <Switch
                                 checked={emailNotice}
                                 onChange={handleEmailNoticeChange}
@@ -180,7 +182,7 @@ const Setting = () => {
                             />
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Typography sx={{ minWidth: 150 }}>Push Notifications</Typography>
+                            <Typography sx={{ minWidth: 150 }}>{t('setting.pushNotifications')}</Typography>
                             <Switch
                                 checked={pushNotice}
                                 onChange={handlePushNoticeChange}
@@ -193,26 +195,26 @@ const Setting = () => {
                 <Divider sx={{ my: 4 }} />
 
                 <Box sx={{ mb: 4 }}>
-                    <SectionHeader icon={<Lock color="primary" />} title="Change Password" />
+                    <SectionHeader icon={<Lock color="primary" />} title={t('setting.changePassword')} />
                     <form onSubmit={handlePasswordChange}>
                         <Stack spacing={3} sx={{ maxWidth: 400 }}>
                             <TextField
                                 type="password"
-                                label="Current Password"
+                                label={t('setting.currentPassword')}
                                 value={currentPassword}
                                 onChange={(e) => setCurrentPassword(e.target.value)}
                                 fullWidth
                             />
                             <TextField
                                 type="password"
-                                label="New Password"
+                                label={t('setting.newPassword')}
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
                                 fullWidth
                             />
                             <TextField
                                 type="password"
-                                label="Confirm New Password"
+                                label={t('setting.confirmNewPassword')}
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 fullWidth
@@ -224,7 +226,7 @@ const Setting = () => {
                                 sx={{ mt: 2 }}
                                 onClick={handlePasswordChange}
                             >
-                                Update Password
+                                {t('setting.updatePassword')}
                             </Button>
                         </Stack>
                     </form>
