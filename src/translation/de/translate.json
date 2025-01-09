@@ -1,0 +1,31 @@
+{
+    "navigation": {
+        "home": "Startseite",
+        "account": "Konto",
+        "profile": "Profil",
+        "subscription": "Abonnement",
+        "devices": "Geräte",
+        "settings": "Einstellungen",
+        "aboutUs": "Über uns",
+        "termOfService": "Nutzungsbedingungen",
+        "privacyPolicy": "Datenschutzrichtlinie",
+        "faq": "FAQ",
+        "logout": "Abmelden"
+},
+    "profile": {
+        "userProfile": "Benutzerprofil",
+        "personalInformation": "Persönliche Informationen",
+        "userID": "Benutzer-ID",
+        "userName": "Benutzername",
+        "email": "E-Mail",
+        "membershipDetails": "Mitgliedschaftsdetails",
+        "balanceAmount": "Kontostand",
+        "totalPoints": "Gesamtpunkte",
+        "memberLevel": "Mitgliedsstufe",
+        "dates": "Daten",
+        "memberExpiredDate": "Mitgliedschaftsablaufdatum",
+        "lastUseDate": "Letzte Nutzungsdatum",
+        "userRegisteredDate": "Registrierungsdatum",
+        "deleteAccount": "Konto löschen"
+}
+}

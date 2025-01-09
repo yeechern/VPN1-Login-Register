@@ -161,7 +161,7 @@ const Setting = () => {
                             <MenuItem value="es">Spanish</MenuItem>
                             <MenuItem value="fr">French</MenuItem>
                             <MenuItem value="de">German</MenuItem>
-                            <MenuItem value="zh">Chinese</MenuItem>
+                            <MenuItem value="zh">中文</MenuItem>
                         </Select>
                     </FormControl>
                 </Box>
